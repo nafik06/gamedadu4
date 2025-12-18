@@ -7,7 +7,13 @@ const rankingBox = document.getElementById("rankingBox");
 const btnRollAll = document.getElementById("btnRollAll");
 const btnReset = document.getElementById("btnReset");
 
-btnOk.onclick = () => winnerModal.classList.add("hidden");
+// Tombol OK modal saiki dadi pemicu kanggo nampilake peringkat
+btnOk.onclick = () => {
+    winnerModal.classList.add("hidden");
+    rankingBox.classList.add("show");
+    rankingBox.classList.remove("hidden");
+};
+
 
 class Dice3D {
     constructor(el) {
@@ -54,7 +60,7 @@ class Player {
         this.totalScore = 0;
         this.lastRoll = 0;
         this.dice = null;
-        this.scoreEl = null; // Akan diisi saat render
+        this.scoreEl = null;
     }
     
     addScore(val) {
@@ -78,11 +84,9 @@ class Game {
         this.renderAddButton();
     }
 
-    // FUNGSI RESET SKOR
     resetGame() {
         if (this.players.length === 0) return;
-        
-        const yakin = confirm("Reset semua skor menjadi 0?");
+        const yakin = confirm("Reset kabeh skor dadi 0?");
         if (yakin) {
             this.players.forEach(p => {
                 p.totalScore = 0;
@@ -111,7 +115,6 @@ class Game {
 
     addPlayer() {
         if (this.players.length >= 6) return;
-        
         const p = new Player(this.idCounter++);
         const box = document.createElement("div");
         box.className = "player-box";
@@ -141,7 +144,6 @@ class Game {
         const existing = document.querySelector(".add-wrapper");
         if (existing) existing.remove();
         if (this.players.length >= 6) return;
-
         const wrap = document.createElement("div");
         wrap.className = "add-wrapper";
         wrap.innerHTML = `
@@ -154,10 +156,10 @@ class Game {
     }
 
     rollAll() {
-        if (this.players.length === 0) return alert("Tambah pemain dulu!");
+        if (this.players.length === 0) return alert("Tambah pemain dhisik!");
         
+        // Singidake ranking dhisik sakdurunge ngeroll
         rankingBox.classList.add("hidden");
-        // Sembunyikan tombol hapus & reset saat ngeroll
         document.querySelectorAll(".btnDel").forEach(b => b.classList.add("hidden"));
         if(btnReset) btnReset.classList.add("hidden");
 
@@ -169,33 +171,44 @@ class Game {
 
         setTimeout(() => {
             this.showResults();
-            // Munculkan kembali tombol
             document.querySelectorAll(".btnDel").forEach(b => b.classList.remove("hidden"));
             if(btnReset) btnReset.classList.remove("hidden");
         }, 3200);
     }
-
     showResults() {
-        this.players.forEach(p => p.scoreEl.textContent = p.totalScore);
-        const sorted = [...this.players].sort((a, b) => b.totalScore - a.totalScore);
-        
-        rankingList.innerHTML = sorted.map((p, i) => `
-            <div class="rank-row ${i === 0 ? 'rank-top' : ''}" style="display:flex; justify-content:space-between; padding:8px; border-bottom: 1px solid #30363d;">
-                <span>${p.name}</span>
-                <strong>${p.totalScore} poin</strong>
-            </div>
-        `).join("");
+    // 1. Update skor visual
+    this.players.forEach(p => p.scoreEl.textContent = p.totalScore);
 
-        const topScore = sorted[0].totalScore;
-        const winners = sorted.filter(p => p.totalScore === topScore);
+    // 2. Hitung ranking
+    const sorted = [...this.players].sort((a, b) => b.totalScore - a.totalScore);
+    
+    rankingList.innerHTML = sorted.map((p, i) => `
+        <div class="rank-row ${i === 0 ? 'rank-top' : ''}" style="display:flex; justify-content:space-between; padding:8px; border-bottom: 1px solid #30363d;">
+            <span>${p.name}</span>
+            <strong>${p.totalScore} poin</strong>
+        </div>
+    `).join("");
 
-        winnerText.innerHTML = winners.length > 1 
-            ? `<span style="color:#f39c12">SERI!</span><br>Skor ${topScore} oleh ${winners.map(w=>w.name).join(", ")}`
-            : `<span style="color:#27ae60">JUARA!</span><br>${winners[0].name} menang dengan ${topScore} poin!`;
+    const topScore = sorted[0].totalScore;
+    const winners = sorted.filter(p => p.totalScore === topScore);
 
-        rankingBox.classList.remove("hidden");
-        winnerModal.classList.remove("hidden");
+    // 3. Pesan pengumuman
+    let pesan = "";
+    if (winners.length > 1) {
+        pesan = `SERI!\nSkor ${topScore} oleh ${winners.map(w=>w.name).join(", ")}`;
+    } else {
+        pesan = `PEMENANG!\n${winners[0].name} menang dengan ${topScore} poin!`;
     }
+
+    // 4. Pakai alert bawaan browser
+    alert(pesan);
+
+    // 5. Setelah OK ditekan, tampilkan ranking
+    rankingBox.classList.add("show");
+    rankingBox.classList.remove("hidden");
+}
+
+    
 }
 
 new Game();
