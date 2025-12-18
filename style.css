@@ -5,33 +5,41 @@ body {
     font-family: Arial, sans-serif;
 }
 
-h1 {
-    text-align: center;
-    margin: 24px 0;
-}
-
 .container {
     max-width: 1200px;
     margin: auto;
     text-align: center;
+    padding: 20px;
 }
 
 /* ===== AREA DADU ===== */
 .dice-area {
     display: flex;
     justify-content: center;
-    gap: 36px;
+    align-items: flex-start;
+    gap: 20px;
     flex-wrap: wrap;
     margin-bottom: 40px;
+    min-height: 300px;
 }
 
-/* ===== PLAYER ===== */
-.player-box,
-.add-wrapper {
-    width: 140px;
+/* Samakan struktur Box Pemain dan Box Tambah */
+.player-box, .add-wrapper {
+    width: 160px;
+    background: #161b22;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #30363d;
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+/* Input Nama & Placeholder agar tinggi sama */
+.name-input, .add-placeholder {
+    height: 35px;
+    width: 100%;
+    margin-bottom: 15px;
 }
 
 .name-input {
@@ -39,18 +47,16 @@ h1 {
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 8px;
-    width: 100%;
     text-align: center;
-    margin-bottom: 14px;
     font-weight: bold;
 }
 
-/* ===== 3D DICE ===== */
+/* ===== 3D DICE SCENE ===== */
 .scene {
     width: 100px;
     height: 100px;
-    perspective: 700px;
+    perspective: 600px;
+    margin-bottom: 15px;
 }
 
 .dice {
@@ -58,6 +64,7 @@ h1 {
     height: 100%;
     position: relative;
     transform-style: preserve-3d;
+    transition: transform 0.5s ease-out;
 }
 
 .face {
@@ -65,220 +72,26 @@ h1 {
     width: 100px;
     height: 100px;
     background: white;
-    border-radius: 16px;
-    display: grid;
-    padding: 12px;
-    box-sizing: border-box;
-    place-items: center;
-}
-
-/* posisi 3D */
-.front  { transform: rotateY(0deg) translateZ(50px); }
-.back   { transform: rotateY(180deg) translateZ(50px); }
-.right  { transform: rotateY(90deg) translateZ(50px); }
-.left   { transform: rotateY(-90deg) translateZ(50px); }
-.top    { transform: rotateX(90deg) translateZ(50px); }
-.bottom { transform: rotateX(-90deg) translateZ(50px); }
-
-/* pip */
-.pip {
-    width: 14px;
-    height: 14px;
-    background: black;
-    border-radius: 50%;
-     box-shadow: inset 2px 2px 4px rgba(255,255,255,.4),
-                inset -2px -2px 4px rgba(0,0,0,.4);
-}
-
-/* grid pola dadu asli */
-.one, .two, .three, .five {
-    grid-template: repeat(3,1fr) / repeat(3,1fr);
-}
-.four {
-    grid-template: repeat(2,1fr) / repeat(2,1fr);
-}
-.six {
-    grid-template: repeat(3,1fr) / repeat(2,1fr);
-}
-
-/* hapus */
-.btnDel {
-    margin-top: 14px;
-    background: #da3633;
-    border-radius: 8px;
-    padding: 8px;
-    width: 100%;
-    border: none;
-    color: white;
-    cursor: pointer;
-}
-
-/* ===== TOMBOL + ===== */
-.add-spacer {
-    height: 42px;
-}
-.add-spacer-bottom {
-    height: 46px;
-}
-
-.add-box {
-    width: 100px;
-    height: 100px;
-    border: 3px dashed #2ea043;
-    border-radius: 16px;
-    color: #2ea043;
-    font-size: 64px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-/* ===== ROLL ===== */
-.roll-btn {
-    padding: 18px 60px;
-    font-size: 22px;
-    background: #238636;
-    color: white;
-    border: none;
-    border-radius: 40px;
-    cursor: pointer;
-}
-
-/* ===== RANKING ===== */
-.ranking-box {
-    background: #161b22;
-    padding: 20px;
+    border: 2px solid #ccc;
     border-radius: 12px;
-    width: 320px;
-    margin: 30px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    padding: 8px;
+    box-sizing: border-box;
 }
 
-.ranking-title {
-    font-size: 22px;
-    margin-bottom: 12px;
-}
-
-.rank-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-}
-
-.rank-row span {
-    color: #3fb950;
-    font-weight: bold;
-}
-
-.hidden {
-    display: none;
-}
-.hide-del {
-    display: none;
-}
-.winner-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.winner-content {
-    background: #161b22;
-    padding: 30px;
-    border-radius: 16px;
-    text-align: center;
-    color: white;
-}
-
-.winner-content button {
-    margin-top: 20px;
-    padding: 10px 30px;
-    border-radius: 20px;
-    border: none;
-    background: #2ea043;
-    color: white;
-    cursor: pointer;
-}
-body {
-    margin: 0;
-    background: #0d1117;
-    color: white;
-    font-family: Arial, sans-serif;
-}
-
-h1 {
-    text-align: center;
-    margin: 24px 0;
-}
-
-.container {
-    max-width: 1200px;
+/* Pip/Titik */
+.pip {
+    width: 18px;
+    height: 18px;
+    background: #333;
+    border-radius: 50%;
     margin: auto;
-    text-align: center;
 }
+.face span:not(.pip) { visibility: hidden; }
 
-/* ===== AREA DADU ===== */
-.dice-area {
-    display: flex;
-    justify-content: center;
-    gap: 36px;
-    flex-wrap: wrap;
-    margin-bottom: 40px;
-}
-
-/* ===== PLAYER ===== */
-.player-box,
-.add-wrapper {
-    width: 140px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.name-input {
-    background: #2ea043;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 14px;
-    font-weight: bold;
-}
-
-/* ===== 3D DICE ===== */
-.scene {
-    width: 100px;
-    height: 100px;
-    perspective: 700px;
-}
-
-.dice {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-}
-
-.face {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background: white;
-    border-radius: 16px;
-    display: grid;
-    padding: 12px;
-    box-sizing: border-box;
-    place-items: center;
-}
-
-/* posisi 3D */
+/* Posisi Sisi */
 .front  { transform: rotateY(0deg) translateZ(50px); }
 .back   { transform: rotateY(180deg) translateZ(50px); }
 .right  { transform: rotateY(90deg) translateZ(50px); }
@@ -286,133 +99,117 @@ h1 {
 .top    { transform: rotateX(90deg) translateZ(50px); }
 .bottom { transform: rotateX(-90deg) translateZ(50px); }
 
-/* pip */
-.pip {
-    width: 14px;
-    height: 14px;
-    background: black;
-    border-radius: 50%;
-     box-shadow: inset 2px 2px 4px rgba(255,255,255,.4),
-                inset -2px -2px 4px rgba(0,0,0,.4);
-}
-
-/* grid pola dadu asli */
-.one, .two, .three, .five {
-    grid-template: repeat(3,1fr) / repeat(3,1fr);
-}
-.four {
-    grid-template: repeat(2,1fr) / repeat(2,1fr);
-}
-.six {
-    grid-template: repeat(3,1fr) / repeat(2,1fr);
-}
-
-/* hapus */
-.btnDel {
-    margin-top: 14px;
-    background: #da3633;
-    border-radius: 8px;
-    padding: 8px;
-    width: 100%;
-    border: none;
-    color: white;
-    cursor: pointer;
-}
-
-/* ===== TOMBOL + ===== */
-.add-spacer {
-    height: 42px;
-}
-.add-spacer-bottom {
-    height: 46px;
-}
-
+/* ===== TOMBOL TAMBAH (+) ===== */
 .add-box {
     width: 100px;
     height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 3px dashed #2ea043;
-    border-radius: 16px;
-    color: #2ea043;
-    font-size: 64px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-/* ===== ROLL ===== */
-.roll-btn {
-    padding: 18px 60px;
-    font-size: 22px;
-    background: #238636;
-    color: white;
-    border: none;
-    border-radius: 40px;
-    cursor: pointer;
-}
-
-/* ===== RANKING ===== */
-.ranking-box {
-    background: #161b22;
-    padding: 20px;
     border-radius: 12px;
-    width: 320px;
-    margin: 30px auto;
-}
-
-.ranking-title {
-    font-size: 22px;
-    margin-bottom: 12px;
-}
-
-.rank-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-}
-
-.rank-row span {
-    color: #3fb950;
-    font-weight: bold;
-}
-
-.hidden {
-    display: none;
-}
-.hide-del {
-    display: none;
-}
-.winner-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.winner-content {
-    background: #161b22;
-    padding: 30px;
-    border-radius: 16px;
-    text-align: center;
-    color: white;
-}
-
-.winner-content button {
-    margin-top: 20px;
-    padding: 10px 30px;
-    border-radius: 20px;
-    border: none;
-    background: #2ea043;
-    color: white;
+    color: #2ea043;
+    font-size: 50px;
     cursor: pointer;
 }
 
-.winner-modal.hidden {
-    display: none;
+/* Tombol Hapus */
+.btnDel {
+    background: #da3633;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    width: 100%;
+    cursor: pointer;
 }
 
+.hidden { display: none !important; }
 
+/* Skor Kumulatif Styling */
+.total-score {
+    font-size: 12px;
+    color: #8b949e;
+    margin-top: 5px;
+}
+
+.rank-row.rank-top {
+    background: rgba(241, 196, 15, 0.1);
+    border-left: 4px solid #f1c40f;
+}
+/* ===== TOMBOL ROLL KEREN ===== */
+.roll-btn {
+    padding: 18px 25px;
+    font-size: 15px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: white;
+    margin-bottom: 20px;
+    
+    /* Warna Gradient Hijau Modern */
+    background: linear-gradient(135deg, #2ea043 0%, #238636 100%);
+    
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    
+    /* Efek Bayangan */
+    box-shadow: 0 6px 0 #1a6329, 
+                0 12px 20px rgba(46, 160, 67, 0.4);
+}
+
+/* Efek saat kursor diarahkan (Hover) */
+.roll-btn:hover {
+    transform: translateY(-2px); /* Tombol sedikit naik */
+    background: linear-gradient(135deg, #3fb950 0%, #2ea043 100%);
+    box-shadow: 0 8px 0 #1a6329, 
+                0 15px 25px rgba(46, 160, 67, 0.5);
+}
+
+/* Efek saat tombol diklik (Active) */
+.roll-btn:active {
+    transform: translateY(4px); /* Efek tombol tertekan ke bawah */
+    box-shadow: 0 2px 0 #1a6329, 
+                0 5px 10px rgba(46, 160, 67, 0.4);
+}
+
+/* Tambahan Efek Kilauan (Glow) di belakang tombol */
+.roll-btn::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+
+.roll-btn:hover::after {
+    left: 100%;
+}
+/* ===== TOMBOL RESET (AGAK KECIL) ===== */
+.reset-btn {
+    display: block;
+    margin: 15px auto; /* Memberi jarak dari tombol Roll */
+    padding: 8px 20px;
+    font-size: 14px;
+    background: transparent;
+    color: #8b949e; /* Warna abu-abu redup */
+    border: 1px solid #30363d;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+    color: #f85149; /* Berubah jadi merah saat hover */
+    border-color: #f85149;
+    background: rgba(248, 81, 73, 0.1);
+}
+
+.reset-btn:active {
+    transform: scale(0.95);
+}
