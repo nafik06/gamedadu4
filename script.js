@@ -5,6 +5,7 @@ const btnOk = document.getElementById("btnOk");
 const rankingList = document.getElementById("rankingList");
 const rankingBox = document.getElementById("rankingBox");
 const btnRollAll = document.getElementById("btnRollAll");
+const btnReset = document.getElementById("btnReset");
 
 btnOk.onclick = () => winnerModal.classList.add("hidden");
 
@@ -53,6 +54,7 @@ class Player {
         this.totalScore = 0;
         this.lastRoll = 0;
         this.dice = null;
+        this.scoreEl = null; // Akan diisi saat render
     }
     
     addScore(val) {
@@ -66,14 +68,32 @@ class Game {
         this.players = [];
         this.idCounter = 1;
         this.area = document.getElementById("diceArea");
+        
         btnRollAll.onclick = () => this.rollAll();
-        this.renderAddButton();
-        // Tambahkan ini:
-        const btnReset = document.getElementById("btnReset");
+        
         if(btnReset) {
-            btnReset.onclick = () => this.resetGame();}
+            btnReset.onclick = () => this.resetGame();
+        }
 
+        this.renderAddButton();
     }
+
+    // FUNGSI RESET SKOR
+    resetGame() {
+        if (this.players.length === 0) return;
+        
+        const yakin = confirm("Reset semua skor menjadi 0?");
+        if (yakin) {
+            this.players.forEach(p => {
+                p.totalScore = 0;
+                p.lastRoll = 0;
+                if (p.scoreEl) p.scoreEl.textContent = "0";
+            });
+            rankingBox.classList.add("hidden");
+            winnerModal.classList.add("hidden");
+        }
+    }
+
     getPips(v) {
         return { 1:[5], 2:[1,9], 3:[1,5,9], 4:[1,3,7,9], 5:[1,3,5,7,9], 6:[1,3,4,6,7,9] }[v];
     }
@@ -98,7 +118,7 @@ class Game {
         box.innerHTML = `
             <input class="name-input" value="${p.name}">
             <div class="scene"><div class="dice">${this.createDiceHTML()}</div></div>
-            <div class="total-score">Total: <span class="score-val">0</span></div>
+            <div class="total-score" style="margin: 10px 0; font-size: 14px; color: #8b949e;">Total: <span class="score-val" style="color: #3fb950; font-weight: bold;">0</span></div>
             <button class="btnDel">Hapus</button>
         `;
 
@@ -125,8 +145,8 @@ class Game {
         const wrap = document.createElement("div");
         wrap.className = "add-wrapper";
         wrap.innerHTML = `
-            <div class="add-placeholder"></div>
-            <div class="add-box">+</div>
+            <div class="add-placeholder" style="height:35px"></div>
+            <div class="add-box" style="width:100px; height:100px; border:3px dashed #2ea043; border-radius:12px; color:#2ea043; font-size:40px; display:flex; align-items:center; justify-content:center; cursor:pointer;">+</div>
             <div style="height: 60px"></div>
         `;
         wrap.onclick = () => this.addPlayer();
@@ -137,8 +157,9 @@ class Game {
         if (this.players.length === 0) return alert("Tambah pemain dulu!");
         
         rankingBox.classList.add("hidden");
-        // HIDE tombol hapus
+        // Sembunyikan tombol hapus & reset saat ngeroll
         document.querySelectorAll(".btnDel").forEach(b => b.classList.add("hidden"));
+        if(btnReset) btnReset.classList.add("hidden");
 
         this.players.forEach(p => {
             const val = Math.floor(Math.random() * 6) + 1;
@@ -148,32 +169,29 @@ class Game {
 
         setTimeout(() => {
             this.showResults();
-            // SHOW tombol hapus kembali
+            // Munculkan kembali tombol
             document.querySelectorAll(".btnDel").forEach(b => b.classList.remove("hidden"));
+            if(btnReset) btnReset.classList.remove("hidden");
         }, 3200);
     }
 
     showResults() {
-        // Update tampilan skor di box
         this.players.forEach(p => p.scoreEl.textContent = p.totalScore);
-
         const sorted = [...this.players].sort((a, b) => b.totalScore - a.totalScore);
         
         rankingList.innerHTML = sorted.map((p, i) => `
-            <div class="rank-row ${i === 0 ? 'rank-top' : ''}" style="display:flex; justify-content:space-between; padding:8px">
+            <div class="rank-row ${i === 0 ? 'rank-top' : ''}" style="display:flex; justify-content:space-between; padding:8px; border-bottom: 1px solid #30363d;">
                 <span>${p.name}</span>
-                <strong>${p.totalScore} poin (Dadu: ${p.lastRoll})</strong>
+                <strong>${p.totalScore} poin</strong>
             </div>
         `).join("");
 
         const topScore = sorted[0].totalScore;
         const winners = sorted.filter(p => p.totalScore === topScore);
 
-        if (winners.length > 1) {
-            winnerText.innerHTML = `<span style="color:#f39c12">SERI!</span><br>Skor tertinggi ${topScore} oleh ${winners.map(w=>w.name).join(", ")}`;
-        } else {
-            winnerText.innerHTML = `<span style="color:#27ae60">JUARA!</span><br>${winners[0].name} memimpin dengan ${topScore} poin!`;
-        }
+        winnerText.innerHTML = winners.length > 1 
+            ? `<span style="color:#f39c12">SERI!</span><br>Skor ${topScore} oleh ${winners.map(w=>w.name).join(", ")}`
+            : `<span style="color:#27ae60">JUARA!</span><br>${winners[0].name} menang dengan ${topScore} poin!`;
 
         rankingBox.classList.remove("hidden");
         winnerModal.classList.remove("hidden");
