@@ -2,29 +2,21 @@ const diceSound = new Audio("dice_roll.mp3");
 const winnerModal = document.getElementById("winnerModal");
 const winnerText  = document.getElementById("winnerText");
 const btnOk = document.getElementById("btnOk");
+const rankingList = document.getElementById("rankingList");
+const rankingBox = document.getElementById("rankingBox");
+const btnRollAll = document.getElementById("btnRollAll");
 
-btnOk.onclick = () => {
-    winnerModal.classList.add("hidden");
-};
+btnOk.onclick = () => winnerModal.classList.add("hidden");
 
-
-/* ===== ABSTRACTION ===== */
-class AbstractDice {
-    roll() {
-        throw new Error("roll() harus diimplementasikan");
-    }
-}
-
-/* ===== INHERITANCE + POLYMORPHISM ===== */
-class Dice3D extends AbstractDice {
+class Dice3D {
     constructor(el) {
-        super();
         this.el = el;
         this.value = 1;
-        this.rx = this.ry = this.rz = 0;
+        this.rx = 0; this.ry = 0; this.rz = 0;
     }
 
     roll(finalValue) {
+        this.value = finalValue;
         diceSound.currentTime = 0;
         diceSound.play();
 
@@ -33,179 +25,159 @@ class Dice3D extends AbstractDice {
 
         const anim = (now) => {
             if (now - start < duration) {
-                this.rx += 40;
-                this.ry += 45;
-                this.rz += 30;
-                this.el.style.transform =
-                    `rotateX(${this.rx}deg) rotateY(${this.ry}deg) rotateZ(${this.rz}deg)`;
+                this.rx += 40; this.ry += 45; this.rz += 30;
+                this.el.style.transform = `rotateX(${this.rx}deg) rotateY(${this.ry}deg) rotateZ(${this.rz}deg)`;
                 requestAnimationFrame(anim);
             } else {
-                this.value = finalValue;
-                this.el.style.transform = Dice3D.face(finalValue);
+                this.el.style.transform = this.getRotation(finalValue);
             }
         };
         requestAnimationFrame(anim);
     }
 
-    static face(v) {
+    getRotation(v) {
         return {
             1: "rotateX(0deg) rotateY(0deg)",
-            2: "rotateX(-90deg)",
-            3: "rotateY(90deg)",
-            4: "rotateY(-90deg)",
-            5: "rotateX(90deg)",
-            6: "rotateY(180deg)"
+            2: "rotateX(90deg) rotateY(0deg)",
+            3: "rotateX(0deg) rotateY(-90deg)",
+            4: "rotateX(0deg) rotateY(90deg)",
+            5: "rotateX(-90deg) rotateY(0deg)",
+            6: "rotateX(0deg) rotateY(180deg)"
         }[v];
     }
 }
 
-/* ===== ENCAPSULATION ===== */
 class Player {
-    #name;
-    #dice;
-
     constructor(id) {
-        this.#name = `Player ${id}`;
+        this.name = `Player ${id}`;
+        this.totalScore = 0;
+        this.lastRoll = 0;
+        this.dice = null;
     }
-
-    setName(n) { this.#name = n; }
-    setDice(d) { this.#dice = d; }
-    roll(v) { this.#dice.roll(v); }
-
-    get name() { return this.#name; }
-    get value() { return this.#dice.value; }
+    
+    addScore(val) {
+        this.lastRoll = val;
+        this.totalScore += val;
+    }
 }
 
-/* ===== GAME ===== */
 class Game {
     constructor() {
         this.players = [];
-        this.id = 1;
+        this.idCounter = 1;
         this.area = document.getElementById("diceArea");
-
-        btnRollAll.onclick = () => this.roll();
+        btnRollAll.onclick = () => this.rollAll();
         this.renderAddButton();
+        // Tambahkan ini:
+        const btnReset = document.getElementById("btnReset");
+        if(btnReset) {
+            btnReset.onclick = () => this.resetGame();}
+
+    }
+    getPips(v) {
+        return { 1:[5], 2:[1,9], 3:[1,5,9], 4:[1,3,7,9], 5:[1,3,5,7,9], 6:[1,3,4,6,7,9] }[v];
     }
 
-    hideDeleteButtons() {
-        document.querySelectorAll(".btnDel")
-            .forEach(btn => btn.classList.add("hide-del"));
+    createDiceHTML() {
+        const faces = ['front','bottom','right','left','top','back'];
+        return faces.map((f, i) => {
+            const val = i + 1;
+            const pips = this.getPips(val);
+            let content = "";
+            for(let j=1; j<=9; j++) content += pips.includes(j) ? `<span class="pip"></span>` : `<span></span>`;
+            return `<div class="face ${f}">${content}</div>`;
+        }).join("");
     }
 
-    showDeleteButtons() {
-        document.querySelectorAll(".btnDel")
-            .forEach(btn => btn.classList.remove("hide-del"));
-    }
-
-    renderAddButton() {
-        const old = document.querySelector(".add-wrapper");
-        if (old) old.remove();
-
-        if (this.players.length < 6) {
-            const wrap = document.createElement("div");
-            wrap.className = "add-wrapper";
-            wrap.innerHTML = `
-                <div class="add-spacer"></div>
-                <div class="add-box">+</div>
-                <div class="add-spacer-bottom"></div>
-            `;
-            wrap.querySelector(".add-box").onclick = () => this.add();
-            this.area.appendChild(wrap);
-        }
-    }
-
-    add() {
+    addPlayer() {
         if (this.players.length >= 6) return;
-
-        const p = new Player(this.id);
+        
+        const p = new Player(this.idCounter++);
         const box = document.createElement("div");
         box.className = "player-box";
         box.innerHTML = `
             <input class="name-input" value="${p.name}">
-            <div class="scene">
-                <div class="dice">${this.faces()}</div>
-            </div>
+            <div class="scene"><div class="dice">${this.createDiceHTML()}</div></div>
+            <div class="total-score">Total: <span class="score-val">0</span></div>
             <button class="btnDel">Hapus</button>
         `;
 
-        box.querySelector("input").oninput = e => p.setName(e.target.value);
+        box.querySelector("input").oninput = (e) => p.name = e.target.value;
         box.querySelector(".btnDel").onclick = () => {
             box.remove();
-            this.players = this.players.filter(x => x !== p);
+            this.players = this.players.filter(pl => pl !== p);
             this.renderAddButton();
         };
 
-        p.setDice(new Dice3D(box.querySelector(".dice")));
+        p.dice = new Dice3D(box.querySelector(".dice"));
+        p.scoreEl = box.querySelector(".score-val");
+        
         this.players.push(p);
         this.area.insertBefore(box, document.querySelector(".add-wrapper"));
-        this.id++;
-
         this.renderAddButton();
     }
 
-    roll() {
-        this.hideDeleteButtons();
+    renderAddButton() {
+        const existing = document.querySelector(".add-wrapper");
+        if (existing) existing.remove();
+        if (this.players.length >= 6) return;
 
-        if (this.players.length === 0) {
-            alert("Tambahkan dadu terlebih dahulu!");
-            return;
-        }
+        const wrap = document.createElement("div");
+        wrap.className = "add-wrapper";
+        wrap.innerHTML = `
+            <div class="add-placeholder"></div>
+            <div class="add-box">+</div>
+            <div style="height: 60px"></div>
+        `;
+        wrap.onclick = () => this.addPlayer();
+        this.area.appendChild(wrap);
+    }
 
-        const values = [1, 2, 3, 4, 5, 6]
-            .sort(() => Math.random() - 0.5)
-            .slice(0, this.players.length);
+    rollAll() {
+        if (this.players.length === 0) return alert("Tambah pemain dulu!");
+        
+        rankingBox.classList.add("hidden");
+        // HIDE tombol hapus
+        document.querySelectorAll(".btnDel").forEach(b => b.classList.add("hidden"));
 
-        this.players.forEach((p, i) => p.roll(values[i]));
+        this.players.forEach(p => {
+            const val = Math.floor(Math.random() * 6) + 1;
+            p.addScore(val);
+            p.dice.roll(val);
+        });
 
         setTimeout(() => {
-            this.show();
-            this.showDeleteButtons();
-        }, 3100);
+            this.showResults();
+            // SHOW tombol hapus kembali
+            document.querySelectorAll(".btnDel").forEach(b => b.classList.remove("hidden"));
+        }, 3200);
     }
 
-    show() {
-    // 1️⃣ Urutkan dulu
-    const sorted = [...this.players].sort((a, b) => b.value - a.value);
+    showResults() {
+        // Update tampilan skor di box
+        this.players.forEach(p => p.scoreEl.textContent = p.totalScore);
 
-    // 2️⃣ Tampilkan ranking
-    rankingList.innerHTML = sorted.map(p => `
-        <div class="rank-row">
-            <div>${p.name}</div>
-            <span>${p.value}</span>
-        </div>
-    `).join("");
-    rankingBox.classList.remove("hidden");
+        const sorted = [...this.players].sort((a, b) => b.totalScore - a.totalScore);
+        
+        rankingList.innerHTML = sorted.map((p, i) => `
+            <div class="rank-row ${i === 0 ? 'rank-top' : ''}" style="display:flex; justify-content:space-between; padding:8px">
+                <span>${p.name}</span>
+                <strong>${p.totalScore} poin (Dadu: ${p.lastRoll})</strong>
+            </div>
+        `).join("");
 
-    // 3️⃣ Pengumuman pemenang
-    const winner = sorted[0];
-    winnerText.textContent =
-        `${winner.name} menang dengan nilai ${winner.value}`;
-    winnerModal.classList.remove("hidden");
-}
+        const topScore = sorted[0].totalScore;
+        const winners = sorted.filter(p => p.totalScore === topScore);
 
-    faces() {
-        return `
-        ${this.face("front", "one", [5])}
-        ${this.face("back", "six", [1, 2, 3, 4, 5, 6])}
-        ${this.face("right", "three", [1, 5, 9])}
-        ${this.face("left", "four", [1, 2, 3, 4])}
-        ${this.face("top", "five", [1, 3, 5, 7, 9])}
-        ${this.face("bottom", "two", [1, 9])}
-        `;
-    }
-
-    face(pos, cls, points) {
-        let html = "";
-
-        const total = cls === "four" ? 4 : cls === "six" ? 6 : 9;
-        for (let i = 1; i <= total; i++) {
-            html += points.includes(i)
-                ? `<span class="pip"></span>`
-                : `<span></span>`;
+        if (winners.length > 1) {
+            winnerText.innerHTML = `<span style="color:#f39c12">SERI!</span><br>Skor tertinggi ${topScore} oleh ${winners.map(w=>w.name).join(", ")}`;
+        } else {
+            winnerText.innerHTML = `<span style="color:#27ae60">JUARA!</span><br>${winners[0].name} memimpin dengan ${topScore} poin!`;
         }
-        return `<div class="face ${pos} ${cls}">${html}</div>`;
-    }
 
+        rankingBox.classList.remove("hidden");
+        winnerModal.classList.remove("hidden");
+    }
 }
 
 new Game();
